@@ -42,7 +42,7 @@
 </head>
 <body>
   <canvas id="game"></canvas><div class="edge"></div>
-  <div class="title"><b>ROYAL XIANGQI</b><span>CỜ TƯỚNG 3D · BUILD XQ04-SERENE</span></div>
+  <div class="title"><b>ROYAL XIANGQI</b><span>CỜ TƯỚNG 3D · BUILD XQ05-TRUE3D</span></div>
   <header class="topbar glass">
     <div class="brand"><span class="mark">帥</span><div><strong>CỜ TƯỚNG 3D</strong><small>THREE.JS · WEBGL</small></div></div>
     <div class="actions">
@@ -143,7 +143,7 @@ const camera=new THREE.PerspectiveCamera(innerWidth<640?38:43,innerWidth/innerHe
 camera.position.set(MOBILE?7.5:8.8,MOBILE?10.8:12.2,MOBILE?-11.7:-13.2);
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;controls.dampingFactor=.065;controls.target.set(0,.28,0);
-controls.minDistance=9.5;controls.maxDistance=24;controls.minPolarAngle=.25;controls.maxPolarAngle=Math.PI*.47;
+controls.minDistance=8.8;controls.maxDistance=25;controls.minPolarAngle=.22;controls.maxPolarAngle=Math.PI*.50;controls.minAzimuthAngle=-Math.PI*.72;controls.maxAzimuthAngle=Math.PI*.72;
 
 scene.add(new THREE.HemisphereLight(0xffefdc,0x31484a,2.05));
 const key=new THREE.DirectionalLight(0xffd7a0,4.15);key.position.set(-7,15,-8);key.castShadow=true;key.shadow.mapSize.set(MOBILE?1024:2048,MOBILE?1024:2048);key.shadow.bias=-.0004;key.shadow.normalBias=.03;key.shadow.camera.left=-11;key.shadow.camera.right=11;key.shadow.camera.top=11;key.shadow.camera.bottom=-11;scene.add(key);
@@ -178,7 +178,7 @@ function riverTexture(){
 const river=new THREE.Mesh(new THREE.PlaneGeometry(9.45,1.05),new THREE.MeshBasicMaterial({map:riverTexture(),transparent:true,depthWrite:false}));
 river.rotation.x=-Math.PI/2;river.position.set(0,TOP+.018,0);boardGroup.add(river);
 
-const table=new THREE.Mesh(new THREE.CylinderGeometry(7.9,8.35,.7,64),new THREE.MeshPhysicalMaterial({color:0x21140e,roughness:.28,metalness:.05,clearcoat:.56,clearcoatRoughness:.2}));
+const table=new THREE.Mesh(new THREE.CylinderGeometry(7.9,8.35,.84,64),new THREE.MeshPhysicalMaterial({color:0x21140e,roughness:.24,metalness:.05,clearcoat:.66,clearcoatRoughness:.14}));
 table.position.y=-.45;table.castShadow=true;table.receiveShadow=true;scene.add(table);
 
 // Serene Chinese lakeside pavilion environment.
@@ -266,6 +266,77 @@ for(let i=0;i<(MOBILE?10:20);i++){
   p.userData.speed=.09+Math.random()*.12;p.userData.phase=Math.random()*Math.PI*2;
   petals.push(p);env.add(p);
 }
+
+// Real 3D pavilion architecture: roof, rails, bridge and layered mountain silhouettes.
+const roofMat=new THREE.MeshPhysicalMaterial({color:0x2a201c,roughness:.34,metalness:.06,clearcoat:.42,clearcoatRoughness:.18});
+function addRoof(z,flip=false){
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(7.2,8.4,.38,4),roofMat);
+  roof.rotation.y=Math.PI/4;
+  roof.scale.set(1.18,.42,.72);
+  roof.position.set(0,6.0,z);
+  roof.rotation.x=flip?.03:-.03;
+  roof.castShadow=true;
+  env.add(roof);
+
+  const ridge=new THREE.Mesh(new THREE.BoxGeometry(15.8,.20,.24),beamMat);
+  ridge.position.set(0,6.23,z);ridge.castShadow=true;env.add(ridge);
+
+  for(const x of [-7.2,7.2]){
+    const finial=new THREE.Mesh(new THREE.ConeGeometry(.18,.8,8),new THREE.MeshStandardMaterial({color:0x7e5328,metalness:.35,roughness:.34}));
+    finial.position.set(x,6.05,z);finial.rotation.z=x<0?Math.PI/2:-Math.PI/2;env.add(finial);
+  }
+}
+addRoof(-7.8,false);
+if(!MOBILE)addRoof(7.8,true);
+
+const railMat=new THREE.MeshPhysicalMaterial({color:0x3a2015,roughness:.46,clearcoat:.24});
+function addRailSegment(x1,z1,x2,z2){
+  const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz);
+  const rail=new THREE.Mesh(new THREE.BoxGeometry(len,.12,.13),railMat);
+  rail.position.set((x1+x2)/2,.28,(z1+z2)/2);
+  rail.rotation.y=-Math.atan2(dz,dx);
+  rail.castShadow=true;env.add(rail);
+  const rail2=rail.clone();rail2.position.y=-.06;env.add(rail2);
+  const posts=Math.max(2,Math.floor(len/1.1));
+  for(let i=0;i<=posts;i++){
+    const t=i/posts;
+    const p=new THREE.Mesh(new THREE.BoxGeometry(.11,.72,.11),railMat);
+    p.position.set(x1+(x2-x1)*t,.05,z1+(z2-z1)*t);
+    p.castShadow=true;env.add(p);
+  }
+}
+addRailSegment(-9.2,-7.5,-9.2,7.5);
+addRailSegment(9.2,-7.5,9.2,7.5);
+addRailSegment(-9.2,7.5,9.2,7.5);
+
+const bridgeMat=new THREE.MeshPhysicalMaterial({color:0x756554,roughness:.58,clearcoat:.12});
+const bridge=new THREE.Group();
+for(let i=0;i<9;i++){
+  const step=new THREE.Mesh(new THREE.BoxGeometry(1.18,.16,3.2),bridgeMat);
+  const a=(i-4)/4;
+  step.position.set((i-4)*1.02,-.56,8.9+a*a*.58);
+  step.rotation.z=-a*.04;
+  step.castShadow=true;step.receiveShadow=true;bridge.add(step);
+}
+bridge.rotation.y=.02;env.add(bridge);
+
+const mountainMatNear=new THREE.MeshStandardMaterial({color:0x344843,roughness:.92,flatShading:true});
+const mountainMatFar=new THREE.MeshStandardMaterial({color:0x526761,roughness:.96,flatShading:true,transparent:true,opacity:.68});
+function addMountainRing(radius,count,far=false){
+  const mat=far?mountainMatFar:mountainMatNear;
+  for(let i=0;i<count;i++){
+    const a=(i/count)*Math.PI*2+(far?.32:.1);
+    const h=(far?5.5:7.5)+(i%4)*1.4;
+    const r=radius+(i%3)*1.8;
+    const g=new THREE.ConeGeometry((far?2.2:2.8)+(i%3)*.45,h,6);
+    const m=new THREE.Mesh(g,mat);
+    m.position.set(Math.cos(a)*r,h*.5-1.0,Math.sin(a)*r);
+    m.rotation.y=a*.73;
+    m.scale.x=.75+((i%2)*.18);
+    env.add(m);
+  }
+}
+if(!MOBILE){addMountainRing(22,10,true);addMountainRing(17,8,false)}else{addMountainRing(18,6,true)}
 
 const mistMat=new THREE.MeshBasicMaterial({color:0xe9efe8,transparent:true,opacity:.055,depthWrite:false});
 for(let i=0;i<5;i++){
