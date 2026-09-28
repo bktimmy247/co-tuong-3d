@@ -42,7 +42,7 @@
 </head>
 <body>
   <canvas id="game"></canvas><div class="edge"></div>
-  <div class="title"><b>ROYAL XIANGQI</b><span>CỜ TƯỚNG 3D · BUILD XQ01</span></div>
+  <div class="title"><b>ROYAL XIANGQI</b><span>CỜ TƯỚNG 3D · BUILD XQ02</span></div>
   <header class="topbar glass">
     <div class="brand"><span class="mark">帥</span><div><strong>CỜ TƯỚNG 3D</strong><small>THREE.JS · WEBGL</small></div></div>
     <div class="actions">
@@ -347,7 +347,9 @@ function minimax(s,depth,alpha,beta,maximizing,color,ply=0){
 function chooseAI(){
   const moves=allLegal(aiColor,state);if(!moves.length)return null;
   if(aiLevel==='easy'){
-    const caps=moves.filter(a=>!!at(state,a.m.x,a.m.y));return (Math.random()<.55&&caps.length?caps:moves)[Math.floor(Math.random()*(Math.random()<.55&&caps.length?caps:moves).length)];
+    const caps=moves.filter(a=>!!at(state,a.m.x,a.m.y));
+    const pool=(Math.random()<.55&&caps.length)?caps:moves;
+    return pool[Math.floor(Math.random()*pool.length)];
   }
   const depth=aiLevel==='hard'?(MOBILE?2:3):2;
   let best=-Infinity,choices=[];
